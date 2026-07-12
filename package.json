@@ -1,0 +1,47 @@
+{
+  "name": "draftwell-md-editor",
+  "private": true,
+  "version": "0.1.0",
+  "description": "A minimal desktop Markdown file editor.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "build": "tsc -b && vite build",
+    "package": "tauri build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@codemirror/lang-html": "^6.4.11",
+    "@codemirror/lang-markdown": "^6.3.3",
+    "@tauri-apps/api": "^2.11.1",
+    "@uiw/react-codemirror": "^4.23.13",
+    "dompurify": "^3.2.6",
+    "katex": "^0.17.0",
+    "lucide-react": "^0.468.0",
+    "markdown-it": "^14.1.0",
+    "markdown-it-task-lists": "^2.1.1",
+    "markdown-it-texmath": "^1.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "turndown": "^7.2.4",
+    "turndown-plugin-gfm": "^1.0.2"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.4",
+    "@types/katex": "^0.16.8",
+    "@types/markdown-it": "^14.1.2",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@types/turndown": "^5.0.6",
+    "@vitejs/plugin-react": "^4.3.4",
+    "jsdom": "^29.1.1",
+    "typescript": "~5.7.2",
+    "vite": "^6.0.5",
+    "vitest": "^4.1.10"
+  }
+}
