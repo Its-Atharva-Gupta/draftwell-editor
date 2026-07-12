@@ -26,12 +26,12 @@ modules:
     sources:
       - type: archive
         url: https://nodejs.org/dist/v22.14.0/node-v22.14.0-linux-x64.tar.xz
-        sha256: 2982d7c5bb9ba0b7f1ccc7ba3eff1c2b5d351d30b21a7cdbb535d7d9f99215d0
+        sha256: 69b09dba5c8dcb05c4e4273a4340db1005abeafe3927efda2bc5b249e80437ec
         only-arches:
           - x86_64
       - type: archive
         url: https://nodejs.org/dist/v22.14.0/node-v22.14.0-linux-arm64.tar.xz
-        sha256: ded1243fd530a9f8ac0f96f96f4d3e4635696a1e5f8e314a1013516bf27e8e74
+        sha256: 0e5e97c6cf1044a764b9138f8a6f7d388fde9bdac5758131dbe3c2f0cf4709ed
         only-arches:
           - aarch64
 
