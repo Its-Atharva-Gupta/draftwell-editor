@@ -1,0 +1,60 @@
+id: com.draftwell.editor
+runtime: org.gnome.Platform
+runtime-version: '46'
+sdk: org.gnome.Sdk
+command: draftwell
+finish-args:
+  # X11 + Wayland
+  - --socket=x11
+  - --socket=wayland
+  # File access (open/save dialogs)
+  - --filesystem=host
+  # Audio (not used yet, but Tauri may need it)
+  - --socket=pulseaudio
+  # IPC for single-instance
+  - --share=ipc
+  # GPU acceleration
+  - --device=dri
+  # Network (for dev, not needed in production but Tauri plugins may require it)
+  - --share=network
+
+modules:
+  - name: node
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 node /app/bin/node
+    sources:
+      - type: archive
+        url: https://nodejs.org/dist/v22.14.0/node-v22.14.0-linux-x64.tar.xz
+        sha256: 2982d7c5bb9ba0b7f1ccc7ba3eff1c2b5d351d30b21a7cdbb535d7d9f99215d0
+        only-arches:
+          - x86_64
+      - type: archive
+        url: https://nodejs.org/dist/v22.14.0/node-v22.14.0-linux-arm64.tar.xz
+        sha256: ded1243fd530a9f8ac0f96f96f4d3e4635696a1e5f8e314a1013516bf27e8e74
+        only-arches:
+          - aarch64
+
+  - name: draftwell
+    buildsystem: simple
+    build-options:
+      env:
+        npm_config_cache: /run/build/draftwell/npm-cache
+    build-commands:
+      - npm ci --unsafe-perm
+      - npm run tauri:build -- --bundles deb
+      - install -Dm755 src-tauri/target/release/draftwell /app/bin/draftwell
+      - install -Dm644 src-tauri/icons/icon.png /app/share/icons/hicolor/512x512/apps/com.draftwell.editor.png
+      - install -Dm644 src-tauri/icons/draftwell.svg /app/share/icons/hicolor/scalable/apps/com.draftwell.editor.svg
+      - install -Dm644 flatpak/com.draftwell.editor.desktop /app/share/applications/com.draftwell.editor.desktop
+      - install -Dm644 flatpak/com.draftwell.editor.metainfo.xml /app/share/metainfo/com.draftwell.editor.metainfo.xml
+    sources:
+      - type: dir
+        path: ..
+        skip:
+          - node_modules
+          - .git
+          - dist
+          - src-tauri/target
+          - '.flatpak-builder'
+          - build-flatpak

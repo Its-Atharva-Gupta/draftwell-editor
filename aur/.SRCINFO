@@ -1,0 +1,23 @@
+pkgbase = draftwell
+	pkgdesc = A minimal, local-first Markdown and HTML desktop editor built with Tauri 2
+	pkgver = 0.1.0
+	pkgrel = 1
+	url = https://github.com/Its-Atharva-Gupta/draftwell-editor
+	install = 
+	arch = x86_64
+	arch = aarch64
+	license = MIT
+	makedepends = cargo
+	makedepends = nodejs
+	makedepends = npm
+	makedepends = rust
+	depends = webkit2gtk-4.1
+	depends = libxdo
+	depends = libappindicator-gtk3
+	depends = librsvg
+	depends = libsoup3
+	depends = javascriptcoregtk
+	source = draftwell-0.1.0.tar.gz::https://github.com/Its-Atharva-Gupta/draftwell-editor/archive/v0.1.0.tar.gz
+	sha256sums = SKIP
+
+pkgname = draftwell

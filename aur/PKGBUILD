@@ -1,0 +1,73 @@
+# Maintainer: Draftwell Contributors
+# Contributor: Your Name <your-email@example.com>
+
+pkgname=draftwell
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="A minimal, local-first Markdown and HTML desktop editor built with Tauri 2"
+arch=('x86_64' 'aarch64')
+url="https://github.com/Its-Atharva-Gupta/draftwell-editor"
+license=('MIT')
+depends=(
+  'webkit2gtk-4.1'
+  'libxdo'
+  'libappindicator-gtk3'
+  'librsvg'
+  'libsoup3'
+  'javascriptcoregtk'
+)
+makedepends=(
+  'cargo'
+  'nodejs'
+  'npm'
+  'rust'
+)
+source=("$pkgname-$pkgver.tar.gz::https://github.com/Its-Atharva-Gupta/draftwell-editor/archive/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+provides=("$pkgname")
+conflicts=("$pkgname")
+
+prepare() {
+  cd "$srcdir/$pkgname-$pkgver"
+  npm ci --unsafe-perm
+}
+
+build() {
+  cd "$srcdir/$pkgname-$pkgver"
+  npm run tauri:build -- --bundles deb
+}
+
+package() {
+  cd "$srcdir/$pkgname-$pkgver"
+
+  # Binary
+  install -Dm755 "src-tauri/target/release/draftwell" "$pkgdir/usr/bin/draftwell"
+
+  # Desktop file
+  install -Dm644 "flatpak/com.draftwell.editor.desktop" \
+    "$pkgdir/usr/share/applications/com.draftwell.editor.desktop"
+
+  # Icons
+  install -Dm644 "src-tauri/icons/icon.png" \
+    "$pkgdir/usr/share/pixmaps/draftwell.png"
+  install -Dm644 "src-tauri/icons/draftwell.svg" \
+    "$pkgdir/usr/share/icons/hicolor/scalable/apps/com.draftwell.editor.svg"
+
+  # MIME types
+  install -Dm644 /dev/stdin "$pkgdir/usr/share/mime/packages/com.draftwell.editor.xml" << 'MIME'
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="text/markdown">
+    <comment>Markdown document</comment>
+    <glob pattern="*.md"/>
+    <glob pattern="*.markdown"/>
+    <glob pattern="*.mdown"/>
+    <glob pattern="*.mkd"/>
+  </mime-type>
+</mime-info>
+MIME
+
+  # AppStream metadata
+  install -Dm644 "flatpak/com.draftwell.editor.metainfo.xml" \
+    "$pkgdir/usr/share/metainfo/com.draftwell.editor.metainfo.xml"
+}

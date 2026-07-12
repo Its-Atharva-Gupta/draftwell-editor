@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.draftwell.editor</id>
+  <name>Draftwell</name>
+  <summary>A minimal, local-first Markdown and HTML desktop editor</summary>
+  <developer id="com.draftwell">
+    <name>Draftwell Contributors</name>
+  </developer>
+  <description>
+    <p>
+      Draftwell is a lightweight desktop Markdown and HTML editor built with
+      Tauri 2 and Rust. It opens normal files from anywhere on your computer,
+      keeps each open buffer in an in-memory tab, and saves directly back to
+      the same file. Tabs can contain files from completely unrelated folders;
+      there is no database, vault, workspace, account, bundled Chromium
+      runtime, or proprietary document format.
+    </p>
+    <p>Features include:</p>
+    <ul>
+      <li>Real file editing — open, edit, and save actual files from your filesystem</li>
+      <li>Independent tabs — files from any folder coexist without indexing</li>
+      <li>Live preview with GFM task lists, KaTeX math, tables, and more</li>
+      <li>HTML editing with sanitized preview</li>
+      <li>Markdown ↔ HTML conversion with MathML round-trip</li>
+      <li>Customizable accent color, typography, spacing, and toolbar layout</li>
+      <li>Advanced CSS/JS extension API</li>
+    </ul>
+  </description>
+  <url type="homepage">https://github.com/Its-Atharva-Gupta/draftwell-editor</url>
+  <url type="bugtracker">https://github.com/Its-Atharva-Gupta/draftwell-editor/issues</url>
+  <url type="vcs-browser">https://github.com/Its-Atharva-Gupta/draftwell-editor</url>
+  <launchable type="desktop-id">com.draftwell.editor.desktop</launchable>
+  <categories>
+    <category>Office</category>
+    <category>TextEditor</category>
+  </categories>
+  <mime_types>
+    <mime_type>text/markdown</mime_type>
+    <mime_type>text/html</mime_type>
+    <mime_type>text/plain</mime_type>
+  </mime_types>
+  <provides>
+    <binary>draftwell</binary>
+  </provides>
+  <project_license>MIT</project_license>
+  <metadata_license>MIT-0</metadata_license>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Draftwell with a Markdown document open in split view</caption>
+      <image>https://raw.githubusercontent.com/Its-Atharva-Gupta/draftwell-editor/main/docs/screenshots/split-view.png</image>
+    </screenshot>
+  </screenshots>
+  <releases>
+    <release version="0.1.0" date="2025-07-12"/>
+  </releases>
+  <content_rating type="oars-1.1"/>
+</component>
