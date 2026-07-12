@@ -1,70 +1,34 @@
 id: com.draftwell.editor
 runtime: org.gnome.Platform
-runtime-version: '46'
+runtime-version: '50'
 sdk: org.gnome.Sdk
 command: draftwell
+
 finish-args:
-  # X11 + Wayland
   - --socket=x11
   - --socket=wayland
-  # File access (open/save dialogs)
-  - --filesystem=host
-  # Audio (not used yet, but Tauri may need it)
-  - --socket=pulseaudio
-  # IPC for single-instance
   - --share=ipc
-  # GPU acceleration
   - --device=dri
-  # Network (for dev, not needed in production but Tauri plugins may require it)
-  - --share=network
+  - --filesystem=host
 
 modules:
-  # Use host's Node.js via a wrapper that flatpak-builder can use at build time
-  - name: nodejs
-    buildsystem: simple
-    build-commands:
-      - cp -r * /app/node-bin/
-      - mkdir -p /app/bin
-      - ln -s /app/node-bin/bin/node /app/bin/node
-      - ln -s /app/node-bin/bin/npm /app/bin/npm
-      - ln -s /app/node-bin/bin/npx /app/bin/npx
-    sources:
-      - type: archive
-        url: https://nodejs.org/dist/v22.14.0/node-v22.14.0-linux-x64.tar.xz
-        sha256: 69b09dba5c8dcb05c4e4273a4340db1005abeafe3927efda2bc5b249e80437ec
-        only-arches:
-          - x86_64
-        strip-components: 0
-      - type: archive
-        url: https://nodejs.org/dist/v22.14.0/node-v22.14.0-linux-arm64.tar.xz
-        sha256: 0e5e97c6cf1044a764b9138f8a6f7d388fde9bdac5758131dbe3c2f0cf4709ed
-        only-arches:
-          - aarch64
-        strip-components: 0
-
   - name: draftwell
     buildsystem: simple
-    build-options:
-      env:
-        PATH: /app/bin:/usr/bin:/bin
-        npm_config_cache: /run/build/draftwell/npm-cache
-        HOME: /run/build/draftwell
     build-commands:
-      - npm ci
-      - npm run build
-      - npm run tauri:build -- --bundles deb
-      - install -Dm755 src-tauri/target/release/draftwell /app/bin/draftwell
-      - install -Dm644 src-tauri/icons/icon.png /app/share/icons/hicolor/512x512/apps/com.draftwell.editor.png
-      - install -Dm644 src-tauri/icons/draftwell.svg /app/share/icons/hicolor/scalable/apps/com.draftwell.editor.svg
-      - install -Dm644 flatpak/com.draftwell.editor.desktop /app/share/applications/com.draftwell.editor.desktop
-      - install -Dm644 flatpak/com.draftwell.editor.metainfo.xml /app/share/metainfo/com.draftwell.editor.metainfo.xml
+      - install -Dm755 draftwell /app/bin/draftwell
+      - install -Dm644 com.draftwell.editor.desktop /app/share/applications/com.draftwell.editor.desktop
+      - install -Dm644 com.draftwell.editor.metainfo.xml /app/share/metainfo/com.draftwell.editor.metainfo.xml
+      - install -Dm644 icon.png /app/share/icons/hicolor/512x512/apps/com.draftwell.editor.png
+      - install -Dm644 draftwell.svg /app/share/icons/hicolor/scalable/apps/com.draftwell.editor.svg
     sources:
-      - type: dir
-        path: ..
-        skip:
-          - node_modules
-          - .git
-          - dist
-          - src-tauri/target
-          - '.flatpak-builder'
-          - build-flatpak
+      - type: file
+        path: ../src-tauri/target/release/draftwell
+      - type: file
+        path: com.draftwell.editor.desktop
+      - type: file
+        path: com.draftwell.editor.metainfo.xml
+      - type: file
+        path: ../src-tauri/icons/icon.png
+        dest-filename: icon.png
+      - type: file
+        path: ../src-tauri/icons/draftwell.svg

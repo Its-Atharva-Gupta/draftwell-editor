@@ -34,24 +34,16 @@
     <category>Office</category>
     <category>TextEditor</category>
   </categories>
-  <mime_types>
-    <mime_type>text/markdown</mime_type>
-    <mime_type>text/html</mime_type>
-    <mime_type>text/plain</mime_type>
-  </mime_types>
   <provides>
     <binary>draftwell</binary>
+    <mediatype>text/markdown</mediatype>
+    <mediatype>text/html</mediatype>
+    <mediatype>text/plain</mediatype>
   </provides>
   <project_license>MIT</project_license>
-  <metadata_license>MIT-0</metadata_license>
-  <screenshots>
-    <screenshot type="default">
-      <caption>Draftwell with a Markdown document open in split view</caption>
-      <image>https://raw.githubusercontent.com/Its-Atharva-Gupta/draftwell-editor/main/docs/screenshots/split-view.png</image>
-    </screenshot>
-  </screenshots>
+  <metadata_license>CC0-1.0</metadata_license>
   <releases>
-    <release version="0.1.0" date="2025-07-12"/>
+    <release version="0.1.0" date="2026-07-12"/>
   </releases>
   <content_rating type="oars-1.1"/>
 </component>

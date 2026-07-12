@@ -15,16 +15,14 @@ concurrency:
 env:
   CARGO_TERM_COLOR: always
   NODE_VERSION: '22'
+  GNOME_RUNTIME_VERSION: '50'
 
 jobs:
-  # ──────────────────────────────────────────────────────────────
-  # Lint, format, and test
-  # ──────────────────────────────────────────────────────────────
   check:
     name: Lint and Test
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Linux dependencies
         run: |
@@ -35,10 +33,10 @@ jobs:
             libsoup-3.0-dev libjavascriptcoregtk-4.1-dev
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: npm
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -67,17 +65,15 @@ jobs:
         run: cargo check --manifest-path src-tauri/Cargo.toml
 
       - name: Audit npm dependencies
-        run: npm audit --audit-level=high || true
+        run: npm audit --audit-level=high
 
-  # ──────────────────────────────────────────────────────────────
-  # Linux x86_64 — .deb, .rpm, .AppImage
-  # ──────────────────────────────────────────────────────────────
   linux-x86_64:
     name: Linux x86_64 (deb/rpm/AppImage)
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-24.04
     needs: [check]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Linux dependencies
         run: |
@@ -88,10 +84,10 @@ jobs:
             libsoup-3.0-dev libjavascriptcoregtk-4.1-dev rpm
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: npm
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -99,43 +95,40 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
-      - name: Build Tauri deb and rpm
-        run: npm run tauri:build -- --bundles deb,rpm
+      - name: Build deb and rpm
+        run: npm run tauri:build -- --bundles deb,rpm --ci
 
-      - name: Upload .deb
+      - name: Upload deb
         uses: actions/upload-artifact@v4
         with:
           name: draftwell-linux-x86_64-deb
           path: src-tauri/target/release/bundle/deb/*.deb
-          if-no-files-found: warn
+          if-no-files-found: error
 
-      - name: Upload .rpm
+      - name: Upload rpm
         uses: actions/upload-artifact@v4
         with:
           name: draftwell-linux-x86_64-rpm
           path: src-tauri/target/release/bundle/rpm/*.rpm
-          if-no-files-found: warn
+          if-no-files-found: error
 
-      - name: Build AppImage (can fail independently)
-        continue-on-error: true
-        run: npm run tauri:build -- --bundles appimage
+      - name: Build AppImage
+        run: npm run tauri:build -- --bundles appimage --ci
 
-      - name: Upload .AppImage
+      - name: Upload AppImage
         uses: actions/upload-artifact@v4
         with:
           name: draftwell-linux-x86_64-AppImage
           path: src-tauri/target/release/bundle/appimage/*.AppImage
-          if-no-files-found: warn
+          if-no-files-found: error
 
-  # ──────────────────────────────────────────────────────────────
-  # Linux aarch64 — cross-compiled .deb
-  # ──────────────────────────────────────────────────────────────
   linux-arm64:
     name: Linux ARM64 (deb)
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-24.04-arm
     needs: [check]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Linux dependencies
         run: |
@@ -146,10 +139,10 @@ jobs:
             libsoup-3.0-dev libjavascriptcoregtk-4.1-dev
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: npm
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -157,50 +150,58 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
-      - name: Build Tauri deb
-        run: npm run tauri:build -- --bundles deb
+      - name: Build deb
+        run: npm run tauri:build -- --bundles deb --ci
 
-      - name: Upload .deb
+      - name: Upload deb
         uses: actions/upload-artifact@v4
         with:
           name: draftwell-linux-arm64-deb
           path: src-tauri/target/release/bundle/deb/*.deb
-          if-no-files-found: warn
+          if-no-files-found: error
 
-  # ──────────────────────────────────────────────────────────────
-  # Flatpak
-  # ──────────────────────────────────────────────────────────────
   flatpak:
     name: Linux Flatpak
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-24.04
     needs: [check]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Install Flatpak dependencies
+      - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y flatpak flatpak-builder
+          sudo apt-get install -y \
+            flatpak flatpak-builder \
+            libwebkit2gtk-4.1-dev libxdo-dev libssl-dev \
+            libayatana-appindicator3-dev librsvg2-dev \
+            libsoup-3.0-dev libjavascriptcoregtk-4.1-dev
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: npm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install npm dependencies
         run: npm ci
 
-      - name: Build frontend
-        run: npm run build
+      - name: Build native application binary
+        run: npm run tauri:build -- --no-bundle --ci
 
       - name: Add Flathub remote
         run: flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
-      - name: Install GNOME Platform SDK
-        run: flatpak install --user --noninteractive flathub org.gnome.Platform//46 org.gnome.Sdk//46
+      - name: Install GNOME runtime and SDK
+        run: |
+          flatpak install --user --noninteractive flathub \
+            org.gnome.Platform//${{ env.GNOME_RUNTIME_VERSION }} \
+            org.gnome.Sdk//${{ env.GNOME_RUNTIME_VERSION }}
 
-      - name: Build Flatpak
+      - name: Build Flatpak repository
         run: |
           flatpak-builder \
             --user \
@@ -209,31 +210,34 @@ jobs:
             flatpak-build-dir \
             flatpak/com.draftwell.editor.yml
 
-      - name: Export .flatpak bundle
-        run: flatpak build-bundle flatpak-repo draftwell.flatpak com.draftwell.editor --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo
+      - name: Export Flatpak bundle
+        run: |
+          flatpak build-bundle \
+            flatpak-repo \
+            draftwell.flatpak \
+            com.draftwell.editor \
+            --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo
 
-      - name: Upload .flatpak
+      - name: Upload Flatpak
         uses: actions/upload-artifact@v4
         with:
-          name: draftwell-linux-flatpak
+          name: draftwell-linux-x86_64-flatpak
           path: draftwell.flatpak
-          if-no-files-found: warn
+          if-no-files-found: error
 
-  # ──────────────────────────────────────────────────────────────
-  # macOS Apple Silicon
-  # ──────────────────────────────────────────────────────────────
   macos-arm64:
     name: macOS Apple Silicon (dmg)
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: macos-15
     needs: [check]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: npm
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -243,31 +247,29 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
-      - name: Build Tauri .dmg
-        run: npm run tauri:build -- --target aarch64-apple-darwin --bundles dmg
+      - name: Build dmg
+        run: npm run tauri:build -- --target aarch64-apple-darwin --bundles dmg --ci
 
-      - name: Upload .dmg
+      - name: Upload dmg
         uses: actions/upload-artifact@v4
         with:
           name: draftwell-macos-arm64-dmg
           path: src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
-          if-no-files-found: warn
+          if-no-files-found: error
 
-  # ──────────────────────────────────────────────────────────────
-  # macOS Intel
-  # ──────────────────────────────────────────────────────────────
   macos-x86_64:
     name: macOS Intel (dmg)
-    runs-on: macos-13
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: macos-15-intel
     needs: [check]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: npm
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -277,71 +279,61 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
-      - name: Build Tauri .dmg
-        run: npm run tauri:build -- --target x86_64-apple-darwin --bundles dmg
+      - name: Build dmg
+        run: npm run tauri:build -- --target x86_64-apple-darwin --bundles dmg --ci
 
-      - name: Upload .dmg
+      - name: Upload dmg
         uses: actions/upload-artifact@v4
         with:
           name: draftwell-macos-x86_64-dmg
           path: src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg
-          if-no-files-found: warn
+          if-no-files-found: error
 
-  # ──────────────────────────────────────────────────────────────
-  # macOS Universal Binary (combines ARM + Intel)
-  # ──────────────────────────────────────────────────────────────
   macos-universal:
     name: macOS Universal (dmg)
-    runs-on: macos-15
-    needs: [macos-arm64, macos-x86_64]
     if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: macos-15
+    needs: [check]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Download ARM64 build
-        uses: actions/download-artifact@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
         with:
-          name: draftwell-macos-arm64-dmg
-          path: ./macos-arm64
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
 
-      - name: Download Intel build
-        uses: actions/download-artifact@v4
+      - name: Setup Rust targets
+        uses: dtolnay/rust-toolchain@stable
         with:
-          name: draftwell-macos-x86_64-dmg
-          path: ./macos-x86_64
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
 
-      - name: Create universal .dmg
-        run: |
-          # Extract, lipo, and repack as universal binary
-          # This is a simplified approach — in practice you'd
-          # rebuild both targets and use lipo to merge the binaries
-          echo "Universal binary creation requires rebuilding from source"
-          echo "See BUILDING.md for manual instructions"
-          # For now, copy the ARM64 build as the universal build
-          cp ./macos-arm64/*.dmg ./draftwell-macos-universal.dmg
+      - name: Install npm dependencies
+        run: npm ci
 
-      - name: Upload universal .dmg
+      - name: Build universal dmg
+        run: npm run tauri:build -- --target universal-apple-darwin --bundles dmg --ci
+
+      - name: Upload universal dmg
         uses: actions/upload-artifact@v4
         with:
           name: draftwell-macos-universal-dmg
-          path: ./draftwell-macos-universal.dmg
-          if-no-files-found: warn
+          path: src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+          if-no-files-found: error
 
-  # ──────────────────────────────────────────────────────────────
-  # Windows x86_64
-  # ──────────────────────────────────────────────────────────────
   windows-x86_64:
     name: Windows x86_64 (msi)
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: windows-2025
     needs: [check]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: npm
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -351,31 +343,29 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
-      - name: Build Tauri .msi
-        run: npm run tauri:build -- --bundles msi
+      - name: Build msi
+        run: npm run tauri:build -- --bundles msi --ci
 
-      - name: Upload .msi
+      - name: Upload msi
         uses: actions/upload-artifact@v4
         with:
           name: draftwell-windows-x86_64-msi
           path: src-tauri/target/release/bundle/msi/*.msi
-          if-no-files-found: warn
+          if-no-files-found: error
 
-  # ──────────────────────────────────────────────────────────────
-  # Windows ARM64
-  # ──────────────────────────────────────────────────────────────
   windows-arm64:
     name: Windows ARM64 (msi)
-    runs-on: windows-2025-arm
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: windows-11-arm
     needs: [check]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: npm
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -385,21 +375,19 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
-      - name: Build Tauri .msi
-        run: npm run tauri:build -- --target aarch64-pc-windows-msvc --bundles msi
+      - name: Build msi
+        run: npm run tauri:build -- --target aarch64-pc-windows-msvc --bundles msi --ci
 
-      - name: Upload .msi
+      - name: Upload msi
         uses: actions/upload-artifact@v4
         with:
           name: draftwell-windows-arm64-msi
           path: src-tauri/target/aarch64-pc-windows-msvc/release/bundle/msi/*.msi
-          if-no-files-found: warn
+          if-no-files-found: error
 
-  # ──────────────────────────────────────────────────────────────
-  # Generate checksums
-  # ──────────────────────────────────────────────────────────────
   checksums:
     name: Generate Checksums
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-24.04
     needs:
       - linux-x86_64
@@ -407,99 +395,55 @@ jobs:
       - flatpak
       - macos-arm64
       - macos-x86_64
+      - macos-universal
       - windows-x86_64
       - windows-arm64
-    if: always() && !cancelled()
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
         with:
           pattern: draftwell-*
           merge-multiple: true
-          path: ./artifacts
+          path: artifacts
 
       - name: Generate SHA256SUMS
-        working-directory: ./artifacts
+        working-directory: artifacts
+        shell: bash
         run: |
-          sha256sum * > SHA256SUMS
+          find . -maxdepth 1 -type f ! -name SHA256SUMS -printf '%f\0' \
+            | sort -z \
+            | xargs -0 sha256sum > SHA256SUMS
+          test -s SHA256SUMS
           cat SHA256SUMS
 
       - name: Upload checksums
         uses: actions/upload-artifact@v4
         with:
           name: draftwell-checksums
-          path: ./artifacts/SHA256SUMS
+          path: artifacts/SHA256SUMS
+          if-no-files-found: error
 
-  # ──────────────────────────────────────────────────────────────
-  # Release — only on version tags (v*)
-  # ──────────────────────────────────────────────────────────────
   release:
     name: Create Release
-    runs-on: ubuntu-24.04
-    needs:
-      - checksums
-      - macos-universal
     if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    needs: [checksums]
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           pattern: draftwell-*
           merge-multiple: true
-          path: ./release-artifacts
+          path: release-artifacts
 
-      - name: Generate release notes
-        id: notes
-        run: |
-          echo "## Draftwell ${{ github.ref_name }}" > RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "### Downloads" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "| Platform | Architecture | Format | File |" >> RELEASE_NOTES.md
-          echo "|----------|-------------|--------|------|" >> RELEASE_NOTES.md
-          for f in ./release-artifacts/*.deb; do
-            [ -f "$f" ] && echo "| Linux | x86_64 | .deb | $(basename $f) |" >> RELEASE_NOTES.md
-          done
-          for f in ./release-artifacts/*.rpm; do
-            [ -f "$f" ] && echo "| Linux | x86_64 | .rpm | $(basename $f) |" >> RELEASE_NOTES.md
-          done
-          for f in ./release-artifacts/*.AppImage; do
-            [ -f "$f" ] && echo "| Linux | x86_64 | .AppImage | $(basename $f) |" >> RELEASE_NOTES.md
-          done
-          for f in ./release-artifacts/*.flatpak; do
-            [ -f "$f" ] && echo "| Linux | all | .flatpak | $(basename $f) |" >> RELEASE_NOTES.md
-          done
-          for f in ./release-artifacts/*arm64*dmg*; do
-            [ -f "$f" ] && echo "| macOS | Apple Silicon | .dmg | $(basename $f) |" >> RELEASE_NOTES.md
-          done
-          for f in ./release-artifacts/*x86_64*dmg*; do
-            [ -f "$f" ] && echo "| macOS | Intel | .dmg | $(basename $f) |" >> RELEASE_NOTES.md
-          done
-          for f in ./release-artifacts/*universal*dmg*; do
-            [ -f "$f" ] && echo "| macOS | Universal | .dmg | $(basename $f) |" >> RELEASE_NOTES.md
-          done
-          for f in ./release-artifacts/*x86_64*msi*; do
-            [ -f "$f" ] && echo "| Windows | x86_64 | .msi | $(basename $f) |" >> RELEASE_NOTES.md
-          done
-          for f in ./release-artifacts/*arm64*msi*; do
-            [ -f "$f" ] && echo "| Windows | ARM64 | .msi | $(basename $f) |" >> RELEASE_NOTES.md
-          done
-          echo "" >> RELEASE_NOTES.md
-          echo "### SHA256 Checksums" >> RELEASE_NOTES.md
-          echo '```' >> RELEASE_NOTES.md
-          cat ./release-artifacts/SHA256SUMS >> RELEASE_NOTES.md
-          echo '```' >> RELEASE_NOTES.md
-
-      - name: Create Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           name: Draftwell ${{ github.ref_name }}
-          body_path: RELEASE_NOTES.md
+          generate_release_notes: true
           draft: false
           prerelease: false
-          files: |
-            ./release-artifacts/*
-          fail_on_unmatched_files: false
+          files: release-artifacts/*
+          fail_on_unmatched_files: true

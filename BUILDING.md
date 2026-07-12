@@ -223,22 +223,11 @@ npm run tauri:build -- --target x86_64-apple-darwin
 
 ### macOS Universal Binary (.dmg)
 
-Combine both architectures into a single universal binary:
+Install both Rust targets and let Tauri produce a real universal application and DMG:
 
 ```bash
-# Build both architectures
-npm run tauri:build -- --target aarch64-apple-darwin
-npm run tauri:build -- --target x86_64-apple-darwin
-
-# Create universal binary using Tauri's bundler
-# Copy and combine the .app bundles using lipo
-lipo -create \
-  src-tauri/target/aarch64-apple-darwin/release/draftwell \
-  src-tauri/target/x86_64-apple-darwin/release/draftwell \
-  -output src-tauri/target/universal/release/draftwell
-
-# Rebuild the .dmg with the universal binary
-# (This requires manual repackaging — CI handles this automatically)
+rustup target add aarch64-apple-darwin x86_64-apple-darwin
+npm run tauri:build -- --target universal-apple-darwin --bundles dmg
 ```
 
 ### Windows x86_64 (.msi)
@@ -271,29 +260,37 @@ sudo apt install flatpak flatpak-builder
 
 # Add Flathub and the GNOME SDK
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak install --user flathub org.gnome.Platform//46 org.gnome.Sdk//46
+flatpak install --user flathub org.gnome.Platform//50 org.gnome.Sdk//50
 ```
 
 ### Build
 
 ```bash
 # From the project root
-flatpak-builder --user --install --force-clean build-flatpak flatpak/com.draftwell.editor.yml
+npm ci
+npm run tauri:build -- --no-bundle --ci
+
+flatpak-builder \
+  --user \
+  --force-clean \
+  --repo=flatpak-repo \
+  flatpak-build-dir \
+  flatpak/com.draftwell.editor.yml
+
+flatpak build-bundle \
+  flatpak-repo \
+  draftwell.flatpak \
+  com.draftwell.editor \
+  --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo
+
+# Install the bundle for local testing
+flatpak install --user ./draftwell.flatpak
 
 # Run
 flatpak run com.draftwell.editor
-
-# Export to a single-file bundle
-flatpak build-bundle ~/.local/share/flatpak/repo/ draftwell.flatpak com.draftwell.editor
 ```
 
-### Standalone Bundle
-
-```bash
-# Build a standalone .flatpak file (no runtime download needed by the user)
-flatpak-builder --repo=repo --force-clean flatpak-build-dir flatpak/com.draftwell.editor.yml
-flatpak build-bundle repo draftwell.flatpak com.draftwell.editor
-```
+The resulting bundle contains Draftwell itself. Flatpak installs the referenced GNOME runtime from Flathub when needed.
 
 ---
 
@@ -410,4 +407,4 @@ The first build downloads and compiles Rust dependencies. This is normal. Subseq
 
 ## CI/CD Reference
 
-Draftwell uses GitHub Actions for automated builds. See [.github/workflows/build.yml](.github/workflows/build.yml) for the full pipeline configuration, which builds all supported targets on every push and publishes releases on version tags.
+Draftwell uses GitHub Actions for automated builds. See [.github/workflows/build.yml](.github/workflows/build.yml) for the full pipeline configuration. Linting and tests run for pushes and pull requests; platform packages, checksums, and GitHub Releases are produced only for `v*` tags.
