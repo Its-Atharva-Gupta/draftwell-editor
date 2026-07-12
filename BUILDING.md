@@ -16,7 +16,6 @@ This guide covers building Draftwell on every supported platform, including cros
   - [Linux x86_64 (.deb, .rpm, .AppImage)](#linux-x86_64-deb-rpm-appimage)
   - [Linux aarch64 (ARM64)](#linux-aarch64-arm64)
   - [macOS Apple Silicon (.dmg)](#macos-apple-silicon-dmg)
-  - [macOS Intel (.dmg)](#macos-intel-dmg)
   - [macOS Universal Binary (.dmg)](#macos-universal-binary-dmg)
   - [Windows x86_64 (.msi)](#windows-x86_64-msi)
   - [Windows aarch64 (ARM64) (.msi)](#windows-aarch64-arm64-msi)
@@ -209,16 +208,6 @@ npm run tauri:build
 
 # Or explicitly
 npm run tauri:build -- --target aarch64-apple-darwin
-```
-
-### macOS Intel (.dmg)
-
-```bash
-# On an Intel Mac (native)
-npm run tauri:build
-
-# On Apple Silicon, cross-compile for Intel:
-npm run tauri:build -- --target x86_64-apple-darwin
 ```
 
 ### macOS Universal Binary (.dmg)

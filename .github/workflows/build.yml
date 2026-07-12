@@ -257,38 +257,6 @@ jobs:
           path: src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
           if-no-files-found: error
 
-  macos-x86_64:
-    name: macOS Intel (dmg)
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: macos-15-intel
-    needs: [check]
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: x86_64-apple-darwin
-
-      - name: Install npm dependencies
-        run: npm ci
-
-      - name: Build dmg
-        run: npm run tauri:build -- --target x86_64-apple-darwin --bundles dmg --ci
-
-      - name: Upload dmg
-        uses: actions/upload-artifact@v4
-        with:
-          name: draftwell-macos-x86_64-dmg
-          path: src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg
-          if-no-files-found: error
-
   macos-universal:
     name: macOS Universal (dmg)
     if: startsWith(github.ref, 'refs/tags/v')
@@ -394,7 +362,6 @@ jobs:
       - linux-arm64
       - flatpak
       - macos-arm64
-      - macos-x86_64
       - macos-universal
       - windows-x86_64
       - windows-arm64
