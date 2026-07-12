@@ -19,29 +19,39 @@ finish-args:
   - --share=network
 
 modules:
-  - name: node
+  # Use host's Node.js via a wrapper that flatpak-builder can use at build time
+  - name: nodejs
     buildsystem: simple
     build-commands:
-      - install -Dm755 node /app/bin/node
+      - cp -r * /app/node-bin/
+      - mkdir -p /app/bin
+      - ln -s /app/node-bin/bin/node /app/bin/node
+      - ln -s /app/node-bin/bin/npm /app/bin/npm
+      - ln -s /app/node-bin/bin/npx /app/bin/npx
     sources:
       - type: archive
         url: https://nodejs.org/dist/v22.14.0/node-v22.14.0-linux-x64.tar.xz
         sha256: 69b09dba5c8dcb05c4e4273a4340db1005abeafe3927efda2bc5b249e80437ec
         only-arches:
           - x86_64
+        strip-components: 0
       - type: archive
         url: https://nodejs.org/dist/v22.14.0/node-v22.14.0-linux-arm64.tar.xz
         sha256: 0e5e97c6cf1044a764b9138f8a6f7d388fde9bdac5758131dbe3c2f0cf4709ed
         only-arches:
           - aarch64
+        strip-components: 0
 
   - name: draftwell
     buildsystem: simple
     build-options:
       env:
+        PATH: /app/bin:/usr/bin:/bin
         npm_config_cache: /run/build/draftwell/npm-cache
+        HOME: /run/build/draftwell
     build-commands:
-      - npm ci --unsafe-perm
+      - npm ci
+      - npm run build
       - npm run tauri:build -- --bundles deb
       - install -Dm755 src-tauri/target/release/draftwell /app/bin/draftwell
       - install -Dm644 src-tauri/icons/icon.png /app/share/icons/hicolor/512x512/apps/com.draftwell.editor.png
